@@ -12,7 +12,7 @@ app.get("/create/:userId", (req, res, next) => {
   var fileName = json.userId + ".json";
   function writeFile(content){
     var fileContent = JSON.stringify(content);
-    fs.writeFile("db/" + fileName, fileContent, (err) => {
+    fs.writeFile("../db/" + fileName, fileContent, (err) => {
              if (err) throw err;
              console.log("user " + json.userId + " has been registed")
           });
@@ -112,4 +112,15 @@ writeFile(content)
 });
 }
 }
+});
+
+app.get("/get/:userId", (req, res, next) => {
+  var userId = req.params.userId;
+  var fileName = userId + ".json";
+  if (fs.existsSync("../db/" + fileName)){
+    var fileJson = fs.readFileSync("../db/" + fileName, 'utf8');
+    res.json(JSON.parse(fileJson))
+  } else {
+    res.send("user not registed")
+  }
 });
