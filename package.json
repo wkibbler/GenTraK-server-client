@@ -1,0 +1,16 @@
+{
+  "name": "gentrak-server-client",
+  "version": "1.0.0",
+  "description": "Sever Side API for historical data used in GenTraK",
+  "main": "api/create.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "chalk": "^2.4.2",
+    "express": "^4.16.4"
+  }
+}
