@@ -23,6 +23,12 @@ month[10] = "November";
 month[11] = "December";
 var currentMonth = month[d.getMonth()];
 
+var content = {
+  userId: 0,
+  btc: {},
+  ltc: {}
+}
+
 app.get("/create/:userId", (req, res, next) => {
   var options = req.params.userId;
   var json = JSON.parse(options)
@@ -37,12 +43,12 @@ app.get("/create/:userId", (req, res, next) => {
   if (fs.existsSync("../db/" + fileName)){
     null
   } else {
-    var content = {
+    /*var content = {
       userId: json.userId,
       btc: {},
       ltc: {}
-    }
-
+    }*/
+    content.userId = json.userId
     if (typeof json.btc !== 'undefined'){
       content.btc = {
         address: json.btc,
@@ -66,6 +72,101 @@ app.get("/create/:userId", (req, res, next) => {
 if (typeof json.ltc !== 'undefined'){
   content.ltc = {
     address: json.ltc,
+    balances: {
+      January: 0,
+      February: 0,
+      March: 0,
+      April: 0,
+      May: 0,
+      June: 0,
+      July: 0,
+      August: 0,
+      September: 0,
+      October: 0,
+      November: 0,
+      December: 0
+    }
+  }
+}
+if (typeof json.dash !== 'undefined'){
+  content.dash = {
+    address: json.dash,
+    balances: {
+      January: 0,
+      February: 0,
+      March: 0,
+      April: 0,
+      May: 0,
+      June: 0,
+      July: 0,
+      August: 0,
+      September: 0,
+      October: 0,
+      November: 0,
+      December: 0
+    }
+  }
+}
+if (typeof json.rvn !== 'undefined'){
+  content.rvn = {
+    address: json.rvn,
+    balances: {
+      January: 0,
+      February: 0,
+      March: 0,
+      April: 0,
+      May: 0,
+      June: 0,
+      July: 0,
+      August: 0,
+      September: 0,
+      October: 0,
+      November: 0,
+      December: 0
+    }
+  }
+}
+if (typeof json.dyn !== 'undefined'){
+  content.dyn = {
+    address: json.dyn,
+    balances: {
+      January: 0,
+      February: 0,
+      March: 0,
+      April: 0,
+      May: 0,
+      June: 0,
+      July: 0,
+      August: 0,
+      September: 0,
+      October: 0,
+      November: 0,
+      December: 0
+    }
+  }
+}
+if (typeof json.xba !== 'undefined'){
+  content.xba = {
+    address: json.xba,
+    balances: {
+      January: 0,
+      February: 0,
+      March: 0,
+      April: 0,
+      May: 0,
+      June: 0,
+      July: 0,
+      August: 0,
+      September: 0,
+      October: 0,
+      November: 0,
+      December: 0
+    }
+  }
+}
+if (typeof json.zec !== 'undefined'){
+  content.zec = {
+    address: json.zec,
     balances: {
       January: 0,
       February: 0,
@@ -107,9 +208,74 @@ url:"https://insight.litecore.io/api/addr/" + json.ltc + "/balance"
 .then(function(response) {
 console.log(chalk.green("Got Litecoin Balance"))
 content.ltc.balances[currentMonth] = response.data;
-writeFile(content)
+getDashBalance(content)
 }).catch(function(response){
 console.log(chalk.yellow("Failed to get Litecoin Balance"))
+getDashBalance(content)
+});
+}
+
+function getDashBalance(content){
+axios({
+method:'get',
+url:"https://insight.dash.org/insight-api-dash/addr/" + json.dash + "/balance"
+})
+.then(function(response) {
+console.log(chalk.green("Got Dash Balance"))
+content.dash.balances[currentMonth] = response.data;
+getRavenBalance(content)
+}).catch(function(response){
+console.log(chalk.yellow("Failed to get Dash Balance"))
+getRavenBalance(content)
+});
+}
+
+function getRavenBalance(content){
+axios({
+method:'get',
+url:"https://ravencoin.network/api/addr/" + json.rvn + "/balance"
+})
+.then(function(response) {
+console.log(chalk.green("Got Raven Balance"))
+content.rvn.balances[currentMonth] = response.data;
+getBitcoinairBalance(content)
+}).catch(function(response){
+console.log(chalk.yellow("Failed to get Raven Balance"))
+getBitcoinairBalance(content)
+});
+}
+
+function getBitcoinairBalance(content){
+axios({
+method:'get',
+url:"https://explorer.bitcoinair.net/ext/getaddress/" + json.xba
+})
+.then(function(response) {
+console.log(chalk.green("Got Bitcoin Air Balance"))
+var balance = response.data.balance
+if (typeof balance == 'number'){
+  content.xba.balances[currentMonth] = balance;
+} else {
+  content.xba.balances[currentMonth] = 0;
+}
+getZcashBalance(content)
+}).catch(function(response){
+console.log(chalk.yellow("Failed to get Bitcoin Air Balance"))
+getZcashBalance(content)
+});
+}
+
+function getZcashBalance(content){
+axios({
+method:'get',
+url:"https://zcash.blockexplorer.com/api/addr/" + json.zec + "/balance",
+})
+.then(function(response) {
+console.log(chalk.green("Got Zcash Balance"))
+content.zec.balances[currentMonth] = response.data;
+writeFile(content)
+}).catch(function(response){
+console.log(chalk.yellow("Failed to get Zcash Balance"))
 writeFile(content)
 });
 }
@@ -158,12 +324,98 @@ function getNewBalances(){
       .then(function(response) {
       console.log(chalk.green("Got Updated Litecoin Balance"))
       json.ltc.balances[currentMonth] = response.data;
-      rewriteFile(json)
+      updateDash(json)
       }).catch(function(response){
-      console.log(chalk.red("There was an error re-getting Litecoin balance"))
+      console.log(chalk.red("There was an error re-getting Litecoin balance"));
+      updateDash(json)
       });
     }
   }
+  function updateDash(json){
+  if (typeof json.dash !== 'undefined'){
+    axios({
+    method:'get',
+    url:"https://insight.dash.org/insight-api-dash/addr/" + json.dash.address + "/balance"
+    })
+    .then(function(response) {
+    console.log(chalk.green("Got Updated Dash Balance"))
+    json.dash.balances[currentMonth] = response.data;
+    updateRaven(json)
+    }).catch(function(response){
+    console.log(chalk.red("There was an error re-getting Dash balance"))
+    updateRaven(json)
+    });
+  }
+}
+function updateRaven(json){
+if (typeof json.rvn !== 'undefined'){
+  axios({
+  method:'get',
+  url:"https://ravencoin.network/api/addr/" + json.rvn + "/balance"
+  })
+  .then(function(response) {
+  console.log(chalk.green("Got Updated Ravencoin Balance"))
+  json.rvn.balances[currentMonth] = response.data;
+  updateDynamic(json)
+  }).catch(function(response){
+  console.log(chalk.red("There was an error re-getting Ravencoin balance"))
+  updateDynamic(json)
+  });
+}
+}
+function updateDynamic(json){
+if (typeof json.dyn !== 'undefined'){
+  axios({
+  method:'get',
+  url:"https://insight.duality.solutions/api/addr/" + json.dyn + "/balance"
+  })
+  .then(function(response) {
+  console.log(chalk.green("Got Updated Dynamic Balance"))
+  json.dyn.balances[currentMonth] = response.data;
+  updateBitcoinair(json)
+  }).catch(function(response){
+  console.log(chalk.red("There was an error re-getting Dynamic balance"));
+  updateBitcoinair(json)
+  });
+}
+}
+function updateBitcoinair(json){
+if (typeof json.xba !== 'undefined'){
+  axios({
+  method:'get',
+  url:"https://explorer.bitcoinair.net/ext/getaddress/" + json.xba
+  })
+  .then(function(response) {
+  console.log(chalk.green("Got Updated Bitcoin Air Balance"));
+  var balance = response.data.balance;
+  if (typeof balance == 'number'){
+  json.xba.balances[currentMonth] = response.data;
+} else {
+  json.xba.balances[currentMonth] = 0;
+}
+  updateZcash(json)
+  }).catch(function(response){
+  console.log(chalk.red("There was an error re-getting Bitcoin Air balance"));
+  updateZcash(json)
+  });
+}
+}
+function updateZcash(json){
+if (typeof json.zec !== 'undefined'){
+  axios({
+  method:'get',
+  url:"https://zcash.blockexplorer.com/api/addr/" + json.zec + "/balance"
+  })
+  .then(function(response) {
+  console.log(chalk.green("Got Updated Zcash Balance"))
+  json.zec.balances[currentMonth] = response.data;
+  rewriteFile(json)
+  }).catch(function(response){
+  console.log(chalk.red("There was an error re-getting Zcash balance"));
+  rewriteFile(json)
+  });
+}
+}
     function rewriteFile(json){
       var jsonString = JSON.stringify(json);
     fs.writeFile("../db/" + file, jsonString, (err) => {
