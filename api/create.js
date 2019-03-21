@@ -48,37 +48,40 @@ app.get("/create/:userId", (req, res, next) => {
     var exising = fs.readFileSync("../db/" + fileName, 'utf8');
     var existingJson = JSON.parse(exising);
     if (typeof json.btc !== 'undefined' && typeof existingJson.btc.balances == 'undefined'){
-      file.set("btc.address", json.btc);
-      file.set("btc.balances.January", 0);
-      file.set("btc.balances.February", 0);
-      file.set("btc.balances.March", 0);
-      file.set("btc.balances.April", 0);
-      file.set("btc.balances.May", 0);
-      file.set("btc.balances.June", 0);
-      file.set("btc.balances.July", 0);
-      file.set("btc.balances.August", 0);
-      file.set("btc.balances.September", 0);
-      file.set("btc.balances.October", 0);
-      file.set("btc.balances.November", 0);
-      file.set("btc.balances.December", 0);
+      var params = {symbol: "btc", api: "https://insight.bitpay.com/api/addr/", name: "Bitcoin", address: json.btc}
+      addAsset()
+    }
+    function addAsset(){
+      file.set(params.symbol + ".address", params.address);
+      file.set(params.symbol + ".balances.January", 0);
+      file.set(params.symbol + ".balances.February", 0);
+      file.set(params.symbol + ".balances.March", 0);
+      file.set(params.symbol + ".balances.April", 0);
+      file.set(params.symbol + ".balances.May", 0);
+      file.set(params.symbol + ".balances.June", 0);
+      file.set(params.symbol + ".balances.July", 0);
+      file.set(params.symbol + ".balances.August", 0);
+      file.set(params.symbol + ".balances.September", 0);
+      file.set(params.symbol + ".balances.October", 0);
+      file.set(params.symbol + ".balances.November", 0);
+      file.set(params.symbol + ".balances.December", 0);
       file.save();
-      //var a = fs.readFileSync("../db/" + fileName, 'utf8');
       fs.readFile("../db/" + fileName, 'utf8', function read(err, data) {
       axios({
       method:'get',
-      url:"https://insight.bitpay.com/api/addr/" + json.btc + "/balance"
+      url: params.api + params.address + "/balance"
       })
       .then(function(response) {
         var j = JSON.parse(data)
-      j.btc.balances[currentMonth] = response.data;
+      j[params.symbol].balances[currentMonth] = response.data;
       console.log(j)
       var a = JSON.stringify(j)
       fs.writeFile("../db/" + fileName, a, (err) => {
-       console.log(chalk.green("Bitcoin Added to user " + j.userId))
+       console.log(chalk.green(params.name + " Added to user " + j.userId))
       })
     })
   })
-    }
+}
   } else {
     /*var content = {
       userId: json.userId,
