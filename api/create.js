@@ -4,9 +4,12 @@ var app = express();
 var axios = require('axios');
 var chalk = require('chalk');
 var cron = require('node-cron');
+var edit = require('edit-json-file')
+function createServer(){
 app.listen(3000, () => {
  console.log("Server running on port 3000");
 });
+}
 var d = new Date();
 var month = new Array();
 month[0] = "January";
@@ -28,7 +31,7 @@ var content = {
   btc: {},
   ltc: {}
 }
-
+function createUser(){
 app.get("/create/:userId", (req, res, next) => {
   var options = req.params.userId;
   var json = JSON.parse(options)
@@ -41,7 +44,41 @@ app.get("/create/:userId", (req, res, next) => {
           });
   }
   if (fs.existsSync("../db/" + fileName)){
-    null
+    let file = edit(`${__dirname}/../db/` + fileName);
+    var exising = fs.readFileSync("../db/" + fileName, 'utf8');
+    var existingJson = JSON.parse(exising);
+    if (typeof json.btc !== 'undefined' && typeof existingJson.btc.balances == 'undefined'){
+      file.set("btc.address", json.btc);
+      file.set("btc.balances.January", 0);
+      file.set("btc.balances.February", 0);
+      file.set("btc.balances.March", 0);
+      file.set("btc.balances.April", 0);
+      file.set("btc.balances.May", 0);
+      file.set("btc.balances.June", 0);
+      file.set("btc.balances.July", 0);
+      file.set("btc.balances.August", 0);
+      file.set("btc.balances.September", 0);
+      file.set("btc.balances.October", 0);
+      file.set("btc.balances.November", 0);
+      file.set("btc.balances.December", 0);
+      file.save();
+      //var a = fs.readFileSync("../db/" + fileName, 'utf8');
+      fs.readFile("../db/" + fileName, 'utf8', function read(err, data) {
+      axios({
+      method:'get',
+      url:"https://insight.bitpay.com/api/addr/" + json.btc + "/balance"
+      })
+      .then(function(response) {
+        var j = JSON.parse(data)
+      j.btc.balances[currentMonth] = response.data;
+      console.log(j)
+      var a = JSON.stringify(j)
+      fs.writeFile("../db/" + fileName, a, (err) => {
+       console.log(chalk.green("Bitcoin Added to user " + j.userId))
+      })
+    })
+  })
+    }
   } else {
     /*var content = {
       userId: json.userId,
@@ -281,7 +318,8 @@ writeFile(content)
 }
 }
 });
-
+}
+/*
 app.get("/get/:userId", (req, res, next) => {
   var userId = req.params.userId;
   var fileName = userId + ".json";
@@ -429,4 +467,8 @@ if (typeof json.zec !== 'undefined'){
 cron.schedule('* * * * *', () => {
   console.log(chalk.blue("updating balances"));
   getNewBalances()
-});
+});*/
+module.exports = {
+  create: createUser(),
+  createServer: createServer()
+}
