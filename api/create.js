@@ -27,9 +27,7 @@ month[11] = "December";
 var currentMonth = month[d.getMonth()];
 
 var content = {
-  userId: 0,
-  btc: {},
-  ltc: {}
+  userId: 0
 }
 function createUser(){
 app.get("/create/:userId", (req, res, next) => {
@@ -47,11 +45,31 @@ app.get("/create/:userId", (req, res, next) => {
     let file = edit(`${__dirname}/../db/` + fileName);
     var exising = fs.readFileSync("../db/" + fileName, 'utf8');
     var existingJson = JSON.parse(exising);
-    if (typeof json.btc !== 'undefined' && typeof existingJson.btc.balances == 'undefined'){
-      var params = {symbol: "btc", api: "https://insight.bitpay.com/api/addr/", name: "Bitcoin", address: json.btc}
+    console.log(existingJson.btc)
+    if (typeof json.btc !== 'undefined' && typeof existingJson.btc == 'undefined'){
+      var params = {symbol: "btc", api: "https://insight.bitpay.com/api/addr/" + json.btc + "/balance", name: "Bitcoin", address: json.btc}
+      addAsset()
+    } else if (typeof json.ltc !== 'undefined' && typeof existingJson.ltc == 'undefined'){
+      var params = {symbol: "ltc", api: "https://insight.litecore.io/api/addr/" + json.ltc + "/balance", name: "Litecoin", address: json.ltc}
+      addAsset()
+    } else if (typeof json.dash !== 'undefined' && typeof existingJson.dash == 'undefined'){
+      var params = {symbol: "dash", api: "https://insight.dash.org/insight-api-dash/addr/" + json.dash + "/balance", name: "dash", address: json.dash}
+      addAsset()
+    } else if (typeof json.rvn !== 'undefined' && typeof existingJson.rvn == 'undefined'){
+      var params = {symbol: "rvn", api: "https://ravencoin.network/api/addr/" + json.rvn + "/balance", name: "RavenCoin", address: json.rvn}
+      addAsset()
+    } else if (typeof json.dyn !== 'undefined' && typeof existingJson.dyn == 'undefined'){
+      var params = {symbol: "dyn", api: "https://insight.duality.solutions/api/addr/" + json.dyn + "/balance", name: "Dynamic", address: json.dyn}
+      addAsset()
+    } else if (typeof json.xba !== 'undefined' && typeof existingJson.xba == 'undefined'){
+      var params = {symbol: "xba", api: "https://explorer.bitcoinair.net/ext/getaddress/" + json.xba, name: "BitcoinAir", address: json.xba, ex: 1}
+      addAsset()
+    } else if (typeof json.zec !== 'undefined' && typeof existingJson.zec == 'undefined'){
+      var params = {symbol: "zec", api: "https://zcash.blockexplorer.com/api/addr/" + json.zec + "/balance", name: "ZCash", address: json.zec}
       addAsset()
     }
     function addAsset(){
+      file.set(params.symbol);
       file.set(params.symbol + ".address", params.address);
       file.set(params.symbol + ".balances.January", 0);
       file.set(params.symbol + ".balances.February", 0);
@@ -69,11 +87,16 @@ app.get("/create/:userId", (req, res, next) => {
       fs.readFile("../db/" + fileName, 'utf8', function read(err, data) {
       axios({
       method:'get',
-      url: params.api + params.address + "/balance"
+      url: params.api
       })
       .then(function(response) {
         var j = JSON.parse(data)
-      j[params.symbol].balances[currentMonth] = response.data;
+        if (params.ex == 1){
+          var balance = response.data.balance
+        } else {
+          var balance = response.data
+        }
+      j[params.symbol].balances[currentMonth] = balance;
       console.log(j)
       var a = JSON.stringify(j)
       fs.writeFile("../db/" + fileName, a, (err) => {
@@ -278,9 +301,24 @@ url:"https://ravencoin.network/api/addr/" + json.rvn + "/balance"
 .then(function(response) {
 console.log(chalk.green("Got Raven Balance"))
 content.rvn.balances[currentMonth] = response.data;
-getBitcoinairBalance(content)
+getDynamicBalance(content)
 }).catch(function(response){
 console.log(chalk.yellow("Failed to get Raven Balance"))
+getDynamicBalance(content)
+});
+}
+
+function getDynamicBalance(content){
+axios({
+method:'get',
+url:"https://insight.duailty.solutions/api/addr/" + json.dyn + "/balance"
+})
+.then(function(response) {
+console.log(chalk.green("Got Dynamic Balance"))
+content.dyn.balances[currentMonth] = response.data;
+getBitcoinairBalance(content)
+}).catch(function(response){
+console.log(chalk.yellow("Failed to get Dynamic Balance"))
 getBitcoinairBalance(content)
 });
 }
